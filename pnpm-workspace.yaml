@@ -1,0 +1,11 @@
+packages:
+  - ischoolv1-backend
+  - ischoolv1-frontend
+  - packages/*
+
+onlyBuiltDependencies:
+  - '@nestjs/core'
+  - '@prisma/engines'
+  - '@swc/core'
+  - esbuild
+  - prisma

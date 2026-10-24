@@ -1,0 +1,44 @@
+# Local development services. Start with `pnpm db:up`.
+name: ischoolv1
+
+services:
+  postgres:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_USER: ischool
+      POSTGRES_PASSWORD: ischool
+      POSTGRES_DB: ischool
+    # 5433 on the host so it never collides with a locally installed PostgreSQL on 5432.
+    ports:
+      - '5433:5432'
+    volumes:
+      - postgres-data:/var/lib/postgresql
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ischool -d ischool']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # S3-compatible object storage standing in for Cloudflare R2.
+  storage:
+    image: rustfs/rustfs:1.0.3
+    environment:
+      RUSTFS_ACCESS_KEY: ischool
+      RUSTFS_SECRET_KEY: ischool-secret
+      RUSTFS_CONSOLE_ENABLE: 'true'
+    ports:
+      - '9000:9000' # S3 API
+      - '9001:9001' # web console
+    volumes:
+      - storage-data:/data
+
+  # Catches every outgoing email. Web UI at http://localhost:8025
+  mailpit:
+    image: axllent/mailpit:v1.32
+    ports:
+      - '1025:1025' # SMTP
+      - '8025:8025' # web UI
+
+volumes:
+  postgres-data:
+  storage-data:
