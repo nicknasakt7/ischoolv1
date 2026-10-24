@@ -1,0 +1,21 @@
+name: PR title
+
+# PRs are squash-merged, so the title becomes the commit message on main.
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+jobs:
+  commitlint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: echo "$PR_TITLE" | pnpm exec commitlint
