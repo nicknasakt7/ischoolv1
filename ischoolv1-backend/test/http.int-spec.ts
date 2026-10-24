@@ -2,6 +2,7 @@ import { Body, Controller, type INestApplication, Post } from '@nestjs/common';
 import request from 'supertest';
 import { z } from 'zod';
 import { inject } from 'vitest';
+import { Public } from '../src/modules/identity/access/decorators.js';
 import { createTestApp } from './setup/test-app.js';
 
 const echoSchema = z.object({
@@ -9,6 +10,7 @@ const echoSchema = z.object({
   dob: z.iso.date(),
 });
 
+@Public()
 @Controller('test-echo')
 class EchoController {
   @Post()

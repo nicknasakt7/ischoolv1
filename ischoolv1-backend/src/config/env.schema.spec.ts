@@ -2,6 +2,11 @@ import { validateEnv } from './env.schema.js';
 
 const validEnv = {
   APP_ENV: 'local',
+  API_URL: 'http://localhost:3001',
+  FRONTEND_URL: 'http://localhost:3000',
+  BETTER_AUTH_SECRET: 'x'.repeat(32),
+  SMTP_URL: 'smtp://localhost:1025',
+  MAIL_FROM: 'iSchool <no-reply@ischool.local>',
   CORS_ORIGINS: 'http://localhost:3000, https://school-a.example.app',
   DATABASE_URL: 'postgresql://u:p@localhost:5433/db',
   DATABASE_DIRECT_URL: 'postgresql://u:p@localhost:5433/db',

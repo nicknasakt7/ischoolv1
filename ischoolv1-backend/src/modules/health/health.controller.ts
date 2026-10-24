@@ -3,8 +3,10 @@ import { ApiTags } from '@nestjs/swagger';
 import type { Response } from 'express';
 import type { HealthResponse } from '@ischool/contracts';
 import { PrismaService } from '../../infrastructure/database/prisma.service.js';
+import { Public } from '../identity/access/decorators.js';
 
 @ApiTags('health')
+@Public()
 @Controller('health')
 export class HealthController {
   constructor(private readonly prisma: PrismaService) {}

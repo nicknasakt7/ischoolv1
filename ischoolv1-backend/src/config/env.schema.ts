@@ -23,6 +23,20 @@ export const envSchema = z.object({
     )
     .pipe(z.array(z.url()).min(1)),
 
+  /** Public base URL of this API, e.g. https://api.school-a.example.app */
+  API_URL: z.url(),
+  /** Public base URL of the web app; links in emails point here. */
+  FRONTEND_URL: z.url(),
+  /** Signs session cookies and tokens. Generate with `openssl rand -base64 32`. */
+  BETTER_AUTH_SECRET: z.string().min(32),
+  /** Google sign-in is offered only when both are set. */
+  GOOGLE_CLIENT_ID: z.string().min(1).optional(),
+  GOOGLE_CLIENT_SECRET: z.string().min(1).optional(),
+
+  /** e.g. smtp://user:pass@smtp.example.com:587 (Mailpit locally: smtp://localhost:1025) */
+  SMTP_URL: z.url(),
+  MAIL_FROM: z.string().min(3),
+
   DATABASE_URL: z.url(),
   DATABASE_DIRECT_URL: z.url(),
 

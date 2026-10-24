@@ -35,3 +35,193 @@ model AuditLog {
   @@index([actorId, occurredAt])
   @@map("audit_logs")
 }
+
+// ─── Identity: Better Auth tables ──────────────────────────────────────────────
+// Field names are what Better Auth expects; tables and columns stay snake_case.
+
+/// The login identity. One person has one User, linked to any number of profiles.
+model User {
+  id              String   @id @default(uuid(7)) @db.Uuid
+  name            String
+  email           String   @unique
+  emailVerified   Boolean  @default(false) @map("email_verified")
+  image           String?
+  /// Student login name (student code); null for staff and guardians.
+  username        String?  @unique
+  displayUsername String?  @map("display_username")
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt       DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  sessions        Session[]
+  accounts        Account[]
+  staff           Staff?
+  roleAssignments RoleAssignment[]
+
+  @@map("users")
+}
+
+model Session {
+  id        String   @id @default(uuid(7)) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  token     String   @unique
+  expiresAt DateTime @map("expires_at") @db.Timestamptz(3)
+  ipAddress String?  @map("ip_address")
+  userAgent String?  @map("user_agent")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("sessions")
+}
+
+/// A way to sign in: "credential" (password) or an OAuth provider such as Google.
+model Account {
+  id                    String    @id @default(uuid(7)) @db.Uuid
+  userId                String    @map("user_id") @db.Uuid
+  accountId             String    @map("account_id")
+  providerId            String    @map("provider_id")
+  accessToken           String?   @map("access_token")
+  refreshToken          String?   @map("refresh_token")
+  idToken               String?   @map("id_token")
+  accessTokenExpiresAt  DateTime? @map("access_token_expires_at") @db.Timestamptz(3)
+  refreshTokenExpiresAt DateTime? @map("refresh_token_expires_at") @db.Timestamptz(3)
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt             DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("accounts")
+}
+
+/// Short-lived tokens: invitations, password resets.
+model Verification {
+  id         String   @id @default(uuid(7)) @db.Uuid
+  identifier String
+  value      String
+  expiresAt  DateTime @map("expires_at") @db.Timestamptz(3)
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt  DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@index([identifier])
+  @@map("verifications")
+}
+
+// ─── School ────────────────────────────────────────────────────────────────────
+
+/// The one school this deployment serves (ADR 0001). Exactly one row.
+model School {
+  id        String   @id @default(uuid(7)) @db.Uuid
+  nameTh    String   @map("name_th")
+  nameEn    String?  @map("name_en")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@map("school")
+}
+
+// ─── Staff ─────────────────────────────────────────────────────────────────────
+
+enum EmploymentStatus {
+  ACTIVE
+  ON_LEAVE
+  RESIGNED
+  RETIRED
+
+  @@map("employment_status")
+}
+
+/// Someone who works for the school, teacher or not. A Staff profile of a User.
+model Staff {
+  id               String           @id @default(uuid(7)) @db.Uuid
+  userId           String           @unique @map("user_id") @db.Uuid
+  staffCode        String           @unique @map("staff_code")
+  title            String?
+  firstNameTh      String           @map("first_name_th")
+  lastNameTh       String           @map("last_name_th")
+  firstNameEn      String?          @map("first_name_en")
+  lastNameEn       String?          @map("last_name_en")
+  nickname         String?
+  phone            String?
+  position         String?
+  /// Object storage key of the current photo; the previous one is deleted on replace.
+  photoKey         String?          @map("photo_key")
+  employmentStatus EmploymentStatus @default(ACTIVE) @map("employment_status")
+  createdAt        DateTime         @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt        DateTime         @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  user              User               @relation(fields: [userId], references: [id])
+  employmentPeriods EmploymentPeriod[]
+
+  @@map("staff")
+}
+
+enum EmploymentEndReason {
+  RESIGNED
+  RETIRED
+
+  @@map("employment_end_reason")
+}
+
+/// One stretch of employment. Re-hired staff have several.
+model EmploymentPeriod {
+  id        String               @id @default(uuid(7)) @db.Uuid
+  staffId   String               @map("staff_id") @db.Uuid
+  startDate DateTime             @map("start_date") @db.Date
+  endDate   DateTime?            @map("end_date") @db.Date
+  endReason EmploymentEndReason? @map("end_reason")
+  createdAt DateTime             @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  staff Staff @relation(fields: [staffId], references: [id])
+
+  @@index([staffId, startDate])
+  @@map("employment_periods")
+}
+
+// ─── Roles and permissions ─────────────────────────────────────────────────────
+
+/// A school-defined bundle of permissions. Permission keys are defined in code.
+model Role {
+  id          String   @id @default(uuid(7)) @db.Uuid
+  name        String   @unique
+  description String?
+  permissions String[]
+  /// System roles (School Owner) cannot be edited or deleted.
+  isSystem    Boolean  @default(false) @map("is_system")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  assignments RoleAssignment[]
+
+  @@map("roles")
+}
+
+enum RoleScopeType {
+  SCHOOL
+  LEARNING_AREA
+  GRADE_LEVEL
+
+  @@map("role_scope_type")
+}
+
+/// Grants a Role to a User, school-wide or limited to one Learning Area / Grade Level.
+model RoleAssignment {
+  id        String        @id @default(uuid(7)) @db.Uuid
+  userId    String        @map("user_id") @db.Uuid
+  roleId    String        @map("role_id") @db.Uuid
+  scopeType RoleScopeType @default(SCHOOL) @map("scope_type")
+  /// Learning Area or Grade Level id; null when scopeType is SCHOOL.
+  scopeId   String?       @map("scope_id") @db.Uuid
+  createdAt DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role Role @relation(fields: [roleId], references: [id])
+
+  @@index([userId])
+  @@index([roleId])
+  @@map("role_assignments")
+}
