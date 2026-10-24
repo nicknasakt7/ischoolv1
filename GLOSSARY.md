@@ -190,6 +190,14 @@ _Avoid_: Discount, Cancel invoice, Write-off
 
 ## บุคลากรและสิทธิ์
 
+**User** (บัญชีผู้ใช้):
+ตัวตนที่ใช้ล็อกอินหนึ่งตัวต่อคนหนึ่งคน ผูกกับ Profile ได้หลายแบบพร้อมกัน เช่น ครูที่เป็นผู้ปกครองของนักเรียนในโรงเรียนด้วย
+_Avoid_: Account, Login
+
+**Profile** (บทบาทในโรงเรียน):
+ความเป็น Staff, Guardian หรือ Student ของ User หนึ่งคน User ที่มีหลาย Profile สลับมุมมองได้โดยไม่ต้องล็อกอินใหม่
+_Avoid_: User type, Role
+
 **Staff** (บุคลากร):
 ผู้ที่ทำงานให้โรงเรียน ทั้งครูและเจ้าหน้าที่ เช่น งานทะเบียน การเงิน มีประวัติการทำงานกับโรงเรียนเก็บไว้ตลอด
 _Avoid_: Employee, User (ลอยๆ)
@@ -197,6 +205,10 @@ _Avoid_: Employee, User (ลอยๆ)
 **Teacher** (ครู):
 Staff ที่ได้รับ Teaching Assignment หรือ Homeroom Assignment ได้
 _Avoid_: Instructor, Lecturer
+
+**Employment Period** (ช่วงการทำงาน):
+ช่วงเวลาหนึ่งที่ Staff ทำงานให้โรงเรียน มีวันเริ่ม วันสิ้นสุด และเหตุที่สิ้นสุด Staff ที่ลาออกแล้วกลับมาทำงานใหม่จะมีหลายช่วง
+_Avoid_: Contract, Tenure
 
 **Employment Status** (สถานะการทำงาน):
 สถานะของ Staff กับโรงเรียน เช่น ปฏิบัติงาน, ลาพัก, ลาออก, เกษียณ เมื่อพ้นสภาพ บัญชีจะถูกปิด แต่ชื่อบนข้อมูลที่เคยบันทึกยังอยู่
@@ -216,7 +228,15 @@ _Avoid_: Access, Right
 
 **Role** (บทบาท):
 ชุดของ Permission ที่โรงเรียนตั้งชื่อและกำหนดเอง ผู้ใช้หนึ่งคนมีได้หลาย Role
-_Avoid_: User type, Position
+_Avoid_: User type, Position, Profile
+
+**Role Assignment** (การมอบบทบาท):
+การมอบ Role ให้ User พร้อมขอบเขต: ทั้งโรงเรียน, เฉพาะ Learning Area หรือเฉพาะ Grade Level เช่น หัวหน้ากลุ่มสาระคณิตศาสตร์
+_Avoid_: User role, Grant
+
+**School Owner** (เจ้าของระบบโรงเรียน):
+Role ที่ระบบสร้างให้ตอนตั้งโรงเรียน มีทุก Permission แก้ไขหรือลบไม่ได้ และต้องมีผู้ถือ Role นี้อย่างน้อยหนึ่งคนเสมอ
+_Avoid_: Super admin, Root
 
 ## การอนุมัติ
 
