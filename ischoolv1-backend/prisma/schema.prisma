@@ -1,0 +1,37 @@
+// Conventions
+// - Model and field names are PascalCase / camelCase in code, snake_case in the database (@@map / @map).
+// - Primary keys are UUIDv7 (time-ordered, index friendly).
+// - Timestamps are timestamptz.
+// - Domain vocabulary follows GLOSSARY.md at the repository root.
+
+generator client {
+  provider               = "prisma-client"
+  output                 = "../src/infrastructure/database/generated/prisma"
+  runtime                = "nodejs"
+  moduleFormat           = "esm"
+  generatedFileExtension = "ts"
+  importFileExtension    = "js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+/// Append-only record of every change to sensitive data (grades, conduct, money, statuses, permissions).
+model AuditLog {
+  id         String   @id @default(uuid(7)) @db.Uuid
+  occurredAt DateTime @default(now()) @map("occurred_at") @db.Timestamptz(3)
+  /// The user who made the change; null for system jobs.
+  actorId    String?  @map("actor_id")
+  /// Dotted verb, e.g. "grade.updated", "conduct_record.created".
+  action     String
+  entityType String   @map("entity_type")
+  entityId   String   @map("entity_id")
+  before     Json?
+  after      Json?
+  requestId  String?  @map("request_id")
+
+  @@index([entityType, entityId])
+  @@index([actorId, occurredAt])
+  @@map("audit_logs")
+}
