@@ -1,0 +1,3 @@
+# Monorepo with a shared contracts package
+
+Backend and frontend live in one pnpm workspace rooted at `iSchoolv1/`: `ischoolv1-backend`, `ischoolv1-frontend` and `packages/contracts`. The request and response schemas live once in `contracts` and both apps import them. In the old project the two repos hand-copied types and drifted apart silently, and changing an API took two PRs that had to stay in step. With a monorepo, an API change lands in one PR and the type checker catches every place that breaks. Deployment is unaffected (see ADR 0001): the repo still builds one backend image and one frontend image, which are deployed per school.
