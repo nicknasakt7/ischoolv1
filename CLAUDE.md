@@ -15,10 +15,18 @@ School management system: pnpm + Turborepo monorepo with `ischoolv1-backend` (Ne
 - Request and response shapes are Zod schemas in `packages/contracts`. Controllers validate with `@Body({ schema })` / `@Query({ schema })`, and Swagger documents them automatically. Rebuild contracts (`pnpm build`) after editing them.
 - Errors: throw `AppException` with an `ErrorCode` from contracts. Every error reaches the client as RFC 9457 Problem Details. `code` is the contract the frontend translates, so add new codes to contracts.
 - Config comes from `AppConfigService`, backed by `src/config/env.schema.ts`. A new variable goes into the schema and into `.env.example`.
+- After editing `schema.prisma`, run `pnpm --filter @ischool/backend db:migrate` (it also regenerates the client; Prisma 7 no longer does that on its own).
 - Prisma schema: snake_case in the database (`@@map` / `@map`), UUIDv7 ids, `timestamptz`. The generated client is in `src/infrastructure/database/generated` (gitignored, made by `prisma generate`).
 - Changes to sensitive data (grades, conduct, money, statuses, permissions) call `AuditLogService.record(entry, tx)` inside the same transaction as the change.
 - Files go through the `FILE_STORAGE` token (`FileStorage` interface), never an S3 client directly. Background work goes through `JobQueue`.
 - `DATABASE_URL` is app traffic (may be pooled). `DATABASE_DIRECT_URL` is for migrations and pg-boss, which must not go through a transaction pooler.
+
+## Access control
+
+- Every route requires a signed-in user with an active Profile (`AccessGuard`, global). Mark exceptions with `@Public()`.
+- `@RequirePermission(Permission.X)` checks a school-wide grant. Checks scoped to one Learning Area or Grade Level happen in the service with `actor.can(permission, { learningAreaId })`.
+- Read the caller with `@CurrentActor() actor: Actor`. New permission keys go in `packages/contracts/src/permissions.ts`; the School Owner role picks them up automatically.
+- Better Auth owns `/auth/*`. Invitations are password-reset tokens with a 7-day life (`InvitationService`).
 
 ## Tests
 

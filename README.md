@@ -19,8 +19,13 @@ pnpm install
 pnpm db:up                                          # Postgres, storage, mail
 cp ischoolv1-backend/.env.example ischoolv1-backend/.env
 pnpm --filter @ischool/backend db:migrate           # สร้างตาราง
+pnpm --filter @ischool/backend build
+pnpm --filter @ischool/backend school:init -- --name "โรงเรียนสาธิต" \
+  --owner-email owner@demo.local --owner-first-name สมชาย --owner-last-name ใจดี
 pnpm dev                                            # API ที่ http://localhost:3001
 ```
+
+`school:init` สร้างโรงเรียนและส่งคำเชิญถึง School Owner คนแรก เปิดอีเมลใน Mailpit (http://localhost:8025) แล้วกดลิงก์ตั้งรหัสผ่าน (ตอนนี้ยังไม่มีหน้าเว็บ ใช้ `POST /auth/reset-password` ด้วย token จากลิงก์แทนไปก่อน)
 
 | ที่อยู่                            | คืออะไร                                                     |
 | ---------------------------------- | ----------------------------------------------------------- |
