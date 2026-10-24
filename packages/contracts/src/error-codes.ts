@@ -5,5 +5,17 @@ export const ErrorCode = {
   FORBIDDEN: 'FORBIDDEN',
   CONFLICT: 'CONFLICT',
   INTERNAL: 'INTERNAL',
+  /** The session was ended because the account no longer has an active profile or sat idle too long. */
+  SESSION_ENDED: 'SESSION_ENDED',
+  EMAIL_TAKEN: 'EMAIL_TAKEN',
+  STAFF_CODE_TAKEN: 'STAFF_CODE_TAKEN',
+  ROLE_NAME_TAKEN: 'ROLE_NAME_TAKEN',
+  SYSTEM_ROLE_LOCKED: 'SYSTEM_ROLE_LOCKED',
+  LAST_SCHOOL_OWNER: 'LAST_SCHOOL_OWNER',
+  ROLE_IN_USE: 'ROLE_IN_USE',
+  ALREADY_EMPLOYED: 'ALREADY_EMPLOYED',
+  NOT_EMPLOYED: 'NOT_EMPLOYED',
+  ALREADY_SIGNED_IN: 'ALREADY_SIGNED_IN',
+  UNSUPPORTED_FILE: 'UNSUPPORTED_FILE',
 } as const;
 export type ErrorCode = (typeof ErrorCode)[keyof typeof ErrorCode];
